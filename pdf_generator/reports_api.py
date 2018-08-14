@@ -1,47 +1,32 @@
-# from flask import request
-
+from flask import request
 from flask_restful import Resource
 from flask_restful import abort
-from flask_restful.reqparse import RequestParser
-
-from dateutil import parser
 
 from .app import api
 from .app import db
-from .models import Organization
 from .models import Report
-# from .models import Item
+from .serializers import ReportSchema
 
-
-class ReportRequestParser(RequestParser):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.add_argument('organization', help='name of organization this report is for', required=True)
-        self.add_argument('reported', type=str, help='name of organization this report is for', required=True)
-
-
-request_parser = ReportRequestParser()
+report_schema = ReportSchema()
 
 
 class ReportsAPIPost(Resource):
     @staticmethod
     def post():
-        args = request_parser.parse_args()
-        organization = Organization.query.filter_by(name=args['organization']).first()
-        if not organization:
-            abort('400', message='No Organization with this name to link report to')
+        args = request.get_json()
+        if not args:
+            abort(400, message="Please send json payload")
 
-        reported = parser.parse(args['reported'])
-        report = Report(organization=organization, reported=reported)
+        report = report_schema.load(args, session=db.session).data
         db.session.add(report)
         db.session.commit()
 
-        return report.serialise(), 201
+        return report_schema.dump(report)[0], 201
 
     @staticmethod
     def get():
         # List view, no filters supported yet
-        return [report.serialise() for report in Report.query.all()]
+        return [report_schema.dump(report)[0] for report in Report.query.all()]
 
 
 # class ReportsAPI(Resource):

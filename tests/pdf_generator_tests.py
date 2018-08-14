@@ -19,7 +19,7 @@ class PDFGeneratorTests(TestCase):
         db.session.remove()
         db.drop_all()
 
-    @patch('pdf_generator.models.get_current_time')
+    @patch('pdf_generator.serializers.get_current_time')
     def test_report_json_api(self, current_time_mock):
         # Annoying to have real dynamic timestamps in a test
         # I'm pretty confident datetime.utcnow() works so let's patch it
@@ -27,17 +27,17 @@ class PDFGeneratorTests(TestCase):
         current_time_mock.return_value = time_now
 
         org_name = "RobertCorp"
-        reported = '2018-08-14T20:44:34'
+        reported = '2018-08-14T20:44:34+00:00'
 
         db.session.add(Organization(name=org_name))
         db.session.commit()
 
-        response = self.client.post('/reports', data={'organization': org_name, 'reported': reported})
+        response = self.client.post('/reports', json={'organization': 1, 'reported': reported})
         self.assertEqual(response.status_code, 201)
 
         first_report = {
             'id': 1,
-            'organization': org_name,
+            'organization': 1,
             'reported': reported,
             'created': time_now,
             'inventory': [],
