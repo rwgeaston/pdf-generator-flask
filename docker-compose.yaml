@@ -1,0 +1,29 @@
+version: '3.6'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - '.:/app'
+    ports:
+      - 80:80
+    environment:
+      - FLASK_APP=pdf_generator/app.py
+      - FLASK_ENV=development
+      - APP_SETTINGS=pdf_generator.config.DevelopmentConfig
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/pdf_generator
+      - DATABASE_TEST_URL=postgres://postgres:postgres@db:5432/pdf_generator_test
+    depends_on:
+      - db
+
+  db:
+    build:
+      context: ./pdf_generator/db
+      dockerfile: Dockerfile
+    ports:
+      - 5435:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
