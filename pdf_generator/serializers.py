@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from marshmallow import post_dump
+from marshmallow import fields
 
 from .app import ma
 from .models import Organization
@@ -21,11 +22,18 @@ class OrganizationSchema(ma.ModelSchema):
 class ItemSchema(ma.ModelSchema):
     class Meta:
         model = Item
+        fields = (
+            'id',
+            'name',
+            'price',
+        )
 
 
 class ReportSchema(ma.ModelSchema):
     class Meta:
         model = Report
+
+    inventory = fields.Nested(ItemSchema, many=True)
 
     @post_dump(pass_many=False)
     def add_created(self, data):  # pylint: disable=no-self-use

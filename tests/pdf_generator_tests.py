@@ -32,7 +32,18 @@ class PDFGeneratorTests(TestCase):
         db.session.add(Organization(name=org_name))
         db.session.commit()
 
-        response = self.client.post('/reports', json={'organization': 1, 'reported': reported})
+        response = self.client.post(
+            '/reports',
+            json={
+                'organization': 1,
+                'reported': reported,
+                'inventory': [
+                    {'name': 'ItEm', 'price': 9999},
+                    {'name': 'ItEm2', 'price': 3},
+                    {'name': 'ItEm3', 'price': 1234},
+                ]
+            }
+        )
         self.assertEqual(response.status_code, 201)
 
         first_report = {
@@ -40,10 +51,24 @@ class PDFGeneratorTests(TestCase):
             'organization': 1,
             'reported': reported,
             'created': time_now,
-            'inventory': [],
+            'inventory': [
+                {'id': 1, 'name': 'ItEm', 'price': 9999},
+                {'id': 2, 'name': 'ItEm2', 'price': 3},
+                {'id': 3, 'name': 'ItEm3', 'price': 1234},
+            ]
         }
         self.assertEqual(response.get_json(), first_report)
 
         response = self.client.get('/reports')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json(), [first_report])
+
+        response = self.client.get(f'/reports/{first_report["id"]}')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), first_report)
+
+        response = self.client.delete(f'/reports/{first_report["id"]}')
+        self.assertEqual(response.status_code, 204)
+
+        response = self.client.get(f'/reports/{first_report["id"]}')
+        self.assertEqual(response.status_code, 404)

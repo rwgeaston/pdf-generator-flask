@@ -29,22 +29,19 @@ class ReportsAPIPost(Resource):
         return [report_schema.dump(report)[0] for report in Report.query.all()]
 
 
-# class ReportsAPI(Resource):
-#     @staticmethod
-#     def get(slug):
-#         return None
-#
-#     def put(self, slug):
-#         return None
-#
-#     @staticmethod
-#     def patch(slug):
-#         return None
-#
-#     @staticmethod
-#     def delete(slug):
-#         return slug, 204
+class ReportsAPI(Resource):
+    @staticmethod
+    def get_entity(report_id):
+        return Report.query.get_or_404(report_id)
+
+    def get(self, report_id):
+        return report_schema.dump(self.get_entity(report_id))[0], 200
+
+    def delete(self, report_id):
+        db.session.delete(self.get_entity(report_id))
+        db.session.commit()
+        return report_id, 204
 
 
-# api.add_resource(ReportsAPI, '/reports/<report_id>')
+api.add_resource(ReportsAPI, '/reports/<report_id>')
 api.add_resource(ReportsAPIPost, '/reports')
