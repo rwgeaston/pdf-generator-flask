@@ -1,6 +1,9 @@
 from flask import request
+from flask import Response
 from flask_restful import Resource
 from flask_restful import abort
+
+from dicttoxml import dicttoxml
 
 from .app import api
 from .app import db
@@ -35,7 +38,11 @@ class ReportsAPI(Resource):
         return Report.query.get_or_404(report_id)
 
     def get(self, report_id):
-        return report_schema.dump(self.get_entity(report_id))[0], 200
+        response = report_schema.dump(self.get_entity(report_id))[0], 200
+        if request.args.get('format') == 'xml':
+            response = Response(dicttoxml(response), mimetype='text/xml')
+
+        return response
 
     def delete(self, report_id):
         db.session.delete(self.get_entity(report_id))

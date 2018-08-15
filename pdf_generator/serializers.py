@@ -34,6 +34,7 @@ class ReportSchema(ma.ModelSchema):
         model = Report
 
     inventory = fields.Nested(ItemSchema, many=True)
+    inventory = fields.Nested(ItemSchema, many=True)
 
     @post_dump(pass_many=False)
     def add_created(self, data):  # pylint: disable=no-self-use
